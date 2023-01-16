@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0px;
+            margin: 0px;
+            background-color: black;
+            box-sizing: border-box;
+        }
+
+        #board {
+            position: relative;
+            display: flex;
+            flex-wrap: nowrap;
+            /* width: 1024 px; */
+            /* border: 2px solid white; */
+            height: 863px;
+            margin: 0px 100px 0px 289px;
+            background: url("board.jpg") no-repeat;
+        }
+
+
+        #messageArea {
+    position: absolute;
+    top: 20px;
+    left: 175px;
+    margin: auto;
+    /* margin-top: 20px; */
+    border: 1px solid red;
+    height: 70px;
+    color: white;
+    font-size: larger;
+    /* padding: 20px; */
+    width: 658px;
+    text-align: center;
+    FONT-SIZE: 28px;
+}
+
+        .hit {
+            background: url("ship.png") no-repeat center center;
+        }
+
+        .miss {
+            background: url("miss.png") no-repeat center center;
+        }
+
+        #table {
+            position: absolute;
+            border: 1px solid red;
+            left: 173px;
+            top: 98px;
+            border-spacing: 0px;
+
+        }
+
+        td {
+
+            width: 94px;
+            height: 94px;
+            border: 1px solid red;
+        }
+        
+        form {
+            position: absolute;
+            bottom: -20px;
+            right: 620px;
+            /* background-color: rgb(83, 175, 19); */
+        }
+
+        form input {
+            width: 200px;
+            height: 50px;
+            color: green;
+            /* font-size: larger; */
+            font-size: 30px;
+
+        }
+       
+    </style>
+</head>
+
+<body>
+    <div id="board">
+        <div id="messageArea">
+
+        </div>
+        <table id="table">
+            <tr>
+                <td id="00"></td>
+                <td id="01"></td>
+                <td id="02"></td>
+                <td id="03"></td>
+                <td id="04"></td>
+                <td id="05"></td>
+                <td id="06"></td>
+            </tr>
+            <tr>
+                <td id="10"></td>
+                <td id="11"></td>
+                <td id="12"></td>
+                <td id="13"></td>
+                <td id="14"></td>
+                <td id="15"></td>
+                <td id="16"></td>
+            </tr>
+            <tr>
+                <td id="20"></td>
+                <td id="21"></td>
+                <td id="22"></td>
+                <td id="23"></td>
+                <td id="24"></td>
+                <td id="25"></td>
+                <td id="26"></td>
+            </tr>
+            <tr>
+                <td id="30"></td>
+                <td id="31"></td>
+                <td id="32"></td>
+                <td id="33"></td>
+                <td id="34"></td>
+                <td id="35"></td>
+                <td id="36"></td>
+            </tr>
+            <tr>
+                <td id="40"></td>
+                <td id="41"></td>
+                <td id="42"></td>
+                <td id="43"></td>
+                <td id="44"></td>
+                <td id="45"></td>
+                <td id="46"></td>
+            </tr>
+            <tr>
+                <td id="50"></td>
+                <td id="51"></td>
+                <td id="52"></td>
+                <td id="53"></td>
+                <td id="54"></td>
+                <td id="55"></td>
+                <td id="56"></td>
+            </tr>
+            <tr>
+                <td id="60"></td>
+                <td id="61"></td>
+                <td id="62"></td>
+                <td id="63"></td>
+                <td id="64"></td>
+                <td id="65"></td>
+                <td id="66"></td>
+            </tr>
+
+        </table>
+        <div id="inputArea">
+            <form action="#">
+                <input id="guessInput" type="text" placeholder="   A0">
+                <input id="fireButton" type="button" value="FIRE" style="color: red; width: 100px; ">
+
+            </form>
+        </div>
+    </div>
+    <script>
+        var view = {
+            displayMessage: function (msg) {
+                var messageArea = document.getElementById("messageArea");
+
+                messageArea.innerHTML = msg;
+            },
+            displayHit: function (location) {
+                var cell = document.getElementById(location);
+                cell.setAttribute("class", "hit");
+            },
+            displayMiss: function (location) {
+                var cell = document.getElementById(location);
+                cell.setAttribute("class", "miss");
+
+            }
+        }
+
+        // model implementation
+        var model = {
+            boardsize: 7,   //earlier it was 6
+            ship_length : 3,
+            num_of_ships: 3,
+            count_of_down_ships: 0,
+            ships: [
+                { locations: ["00", "00", "00"], hits: ["", "", ""] },
+                { locations: ["00", "00", "00"], hits: ["", "", ""] },
+                { locations: ["00", "00", "00"], hits: ["", "", ""] }],
+            pass_location : function(){
+                for(var i = 0; i<this.num_of_ships;i++){
+                do{
+                    this.ships[i].locations = generate_random_ship_location();
+                    bool_collision = collision(this.ships[i].locations, i);
+                }while(bool_collision);
+                console.log(this.ships[i].locations);
+                }
+            },
+
+            fire: function (guess) {
+                for (var i = 0; i < this.ships.length; i++) {
+                    var ship = this.ships[i];
+                    var location = ship.locations;
+                    if (location.indexOf(guess) >= 0) {
+                        // console.log("true");
+                        ship.hits[location.indexOf(guess)] = "hit";
+                        view.displayHit(guess);
+                        if (this.isSunk(ship)) {
+                            view.displayMessage("YOU SUNK ONE OF MY SHIPS!!");
+                            this.count_of_down_ships++;
+
+                        }
+                        else
+                            view.displayMessage("YOU HIT THE SHIP");
+                        return true;
+                    }
+                }
+                view.displayMiss(guess);
+                view.displayMessage("YOU MISSED IT");
+                return false;
+            },
+            isSunk: function (ship) {
+                for (var i = 0; i < ship.hits.length; i++) {
+                    if (ship.hits[i] !== "hit")
+                        return false;
+                }
+                return true;
+            }
+        }
+
+        var control = {
+            guesses: 0,
+            processGuess: function (guess) {
+                var location = validateGuess(guess);
+                if (location) {
+                    // var check_for_prev_guess = check_for_prev_guess(location);
+                    // if(check_for_prev_guess){
+                    //     view.displayMessage("Same Input Detected! Enter New input ;)");
+                    // }
+                    // else{
+                        console.log(store.record.indexOf(guess));
+                        if (store.record.indexOf(guess) <0) {
+                            store.record.push(guess);
+                            console.log(store.record);
+                        this.guesses++;
+                        var hit = model.fire(location);
+                        if (hit && model.count_of_down_ships === model.num_of_ships) {
+                            view.displayMessage("CONGRATULATIONS !!! You sank all my ships! in " + this.guesses + " moves with efficiency of " + ((9 / this.guesses) * 100).toFixed(2) + "%");
+                            getInput(0);
+                        }
+                    }
+                    else{
+                        view.displayMessage("Previous Input detected . Enter new input");
+                    }
+                    // }
+
+                }
+            }
+
+        }
+
+        var store = {
+            record: []
+        }
+        // function check_for_prev_guess(location){
+
+        // }
+
+        function validateGuess(guess) {
+            var alphabet = ["A", "B", "C", "D", "E", "F", "G"];
+            if (guess === null || guess.length != 2) {
+                // view.displayMessage("Oooopss! Invalid Input ");
+                alert("Invalid Input!!");
+            }
+            else {
+                var firstchar = guess.charAt(0);
+                var row = alphabet.indexOf(firstchar);
+                var column = guess.charAt(1);
+                
+                if (row < 0 || column < 0 || column > model.boardsize-1) {
+                    alert("Ooops, that's out of range!");
+                }
+                // else if()
+                else
+                    return row + column;
+            }
+            return null;
+        }
+
+        function init() {
+            // model.ships[1].locations = [1,2,3];
+            // console.log(model.ships[1].locations)
+            model.pass_location();
+            var button = document.getElementById("fireButton");
+            button.onclick = getInput;
+            var key_press = document.getElementById("guessInput");
+            key_press.onkeypress = enter_function;
+        }
+
+        function enter_function(e) {
+            var fireButton = document.getElementById("fireButton");
+            if (e.keyCode === 13) {
+                fireButton.click();
+                return false;
+            }
+        }
+
+        function getInput(play) {
+            if(play==0){
+                document.getElementById("guessInput").style.display="none";
+                document.getElementById("fireButton").style.display="none";
+            }
+            else{
+            var input = document.getElementById("guessInput");
+            var guess = input.value;
+            control.processGuess(guess);
+            input.value = "";
+            }
+
+        }
+
+        function generate_random_ship_location(){
+            var orientation = Math.floor(Math.random()*2); //0 for horizontal and 1 for vertical
+            var loc =[]; //for storing temp location of ship
+            if(orientation==0)
+            {
+                row = Math.floor(Math.random()*model.boardsize);
+                col = Math.floor(Math.random()*(model.boardsize-model.ship_length+1));
+                // var loc = [];
+                for(var i=0; i<model.ship_length; i++){
+                    loc[i] = row +""+(col + i);
+                }
+            }
+            else if(orientation==1)
+            {
+                col = Math.floor(Math.random()*model.boardsize);
+                row = Math.floor(Math.random()*(model.boardsize-model.ship_length+1));
+                // var loc = [];
+                for(var i=0; i<model.ship_length; i++){
+                    loc[i] = (row + i)+ ""+col;
+                }
+            }
+            return loc;
+        }
+        function collision(current_location, counter){
+            for(i=0; i<counter; i++){
+                for(var j=0; j<model.ship_length; j++){
+                    if(model.ships[i].locations.indexOf(model.ships[counter].locations[j])!=-1){
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+
+        window.onload = init;
+
+
+
+
+    </script>
+</body>
+
+</html>
